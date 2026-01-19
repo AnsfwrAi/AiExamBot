@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Экзамен с большим топбаром</title>
+  <style>
+    body {
+      font-family: Segoe UI, Arial, sans-serif;
+      background: #f2f3f5;
+      margin:0;
+      color: #333;
+    }
+    .topbar {
+      width: 100vw;
+      min-width: 100%;
+      background: #edeff2;
+      height: 64px; /* стало выше */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      border-bottom: 1.5px solid #d4dae2;
+      box-sizing: border-box;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 10px #0001;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .logo {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1.5px 6px #0001;
+      overflow: hidden;
+      border: 1.5px solid #c9d3de;
+    }
+    .logo-img {
+      width: 34px; height: 34px;
+      display: block;
+    }
+    .burger {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+    .burger svg {
+      width: 32px;
+      height: 32px;
+      display: block;
+      color: #70737b;
+      opacity: 0.85;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .topbar-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      margin-right: 16px;
+      font-size: 17px;
+      color: #7c7e83;
+      font-weight: 500;
+    }
+    .meta-label {
+      font-size: 13px;
+      color: #979ba4;
+      font-weight: 400;
+      margin-bottom: -1.5px;
+      letter-spacing: .02em;
+    }
+    .meta-value {
+      color: #222;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: .03em;
+    }
+    .icon-btn {
+      position: relative;
+      margin-left: 10px;
+      margin-right: 6px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn svg {
+      width: 30px;
+      height: 30px;
+      color: #76787f;
+      vertical-align: middle;
+      display: block;
+    }
+    .notif-dot {
+      position: absolute;
+      top: 5px; right: 4px;
+      width: 13px; height: 13px;
+      background: #ed3a40;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      z-index: 3;
+      box-shadow: 0 0 3px #ed3a40a8;
+    }
+    .avatar {
+      width: 39px; height: 39px;
+      border-radius: 50%;
+      background: #e5e8ec;
+      border: 1.5px solid #d4dae2;
+      margin-left: 13px;
+      display: flex; align-items: center; justify-content: center;
+      color: #7a92b6;
+      font-size: 24px;
+      font-weight: 600;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .avatar svg {
+      width: 28px; height: 28px;
+    }
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      margin: 40px auto 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 3px 16px #0001;
+      padding-bottom: 48px;
+      min-height: 83vh;
+    }
+    .header { 
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #ebf2f8; 
+      padding: 22px 58px 10px 58px;
+    }
+    .test-title { font-size: 22px;}
+    .test-title a { color: #3792cb; text-decoration: none; }
+    .header-right { display: flex; align-items: center; gap: 18px;}
+    .timer { background: #e3fae4; color: #35b76e; font-weight: bold; border-radius: 6px; padding: 7px 18px; font-size: 18px;}
+    .finish-btn { background: #e94444; color: #fff; font-weight: 500; border: none; border-radius: 6px; padding: 10px 30px; font-size: 18px; cursor: pointer; }
+    .qnav-wrap {display: flex; justify-content: center; margin: 36px 0 12px 0;}
+    .qnav {
+      display: flex;
+      background: #fff;
+      border: 1.5px solid #bfcad6;
+      border-radius: 10px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .qnum {
+      min-width: 50px; height: 50px;
+      border-right: 1.5px solid #bfcad6;
+      background: #fff;
+      color: #333;
+      font-size: 21px;
+      font-weight: 500;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.11s, color 0.12s;
+    }
+    .qnum:last-child { border-right: none; }
+    .qnum.current { background: #36a0ef; color: #fff; }
+    .qnum.answered:not(.current) { background: #e6f4fd; color: #36a0ef; }
+    .question-wrap { margin: 34px 58px 0 58px; }
+    .question-text { font-size: 19px; margin-bottom: 17px; white-space: pre-line;}
+    .ball-badge { background: #3479db; color: #fff; font-size: 16px; border-radius: 5px; padding: 5px 15px; display: inline-block; margin-bottom: 15px; }
+    .answers { margin: 19px 0 0 0; }
+    .answer {
+      border: 1.3px solid #dde5ef;
+      background: #fff;
+      border-radius: 9px;
+      margin-bottom: 17px;
+      padding: 19px 22px;
+      font-size: 19px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background .09s, border .09s, color .12s;
+      font-weight: 400;
+    }
+    .answer.selected {
+      border: 2px solid #3686d3;
+      background: #e7f2fd;
+      color: #16599b;
+    }
+    .answer-letter {
+      font-weight: bold;
+      font-size: 27px;
+      width: 39px;
+      display: inline-block;
+      text-align: center;
+      margin-right: 22px;
+      flex-shrink: 0;
+      letter-spacing: 1px;
+    }
+    .author { color: #888; font-size: 15px; margin-top: 18px; font-style: italic;}
+    .footer { display: flex; justify-content: center; align-items: center; gap: 1.2em; margin-top: 40px;}
+    .nav-btn { background: #fff; color: #3686d3; border: 1.5px solid #c5d4e4; border-radius: 8px; font-size: 25px; font-weight: bold; width: 48px; height: 48px; cursor: pointer; transition: background .13s, border .13s;}
+    .nav-btn:disabled { color: #c5d4e4; border-color: #eaeaea; cursor: not-allowed;}
+    .progress { margin: 0 14px; font-size: 20px; color: #555; font-weight: 500;}
+    .results { padding: 48px 58px 0 58px;}
+    .res-row { margin-bottom: 27px; border-bottom: 1px solid #e3e8ee; padding-bottom: 18px;}
+    .res-ok { color: #219653; }
+    .res-bad { color: #e94444; }
+    .score { font-size: 23px; color: #16599b; margin-top: 36px;}
+    @media (max-width: 1000px){
+      .container {max-width:100vw; border-radius:0;}
+      .header,.question-wrap,.results {padding:10px;}
+    }
+    @media (max-width: 600px){
+      .container {padding-bottom:10px;}
+      .header,.question-wrap,.results {padding:6px;}
+      .qnav {margin:7px;}
+      .footer {margin:14px 0;}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <svg class="logo-img" viewBox="0 0 64 64" fill="none">
+          <ellipse cx="32" cy="18" rx="25" ry="9" stroke="#597bbd" stroke-width="2" fill="#fff"/>
+          <rect x="12" y="27" width="6" height="22" rx="2" fill="#c7d7eb"/>
+          <rect x="46" y="27" width="6" height="22" rx="2" fill="#c7d7eb"/>
+          <rect x="29" y="27" width="6" height="22" rx="2" fill="#c7d7eb"/>
+          <rect x="38" y="27" width="6" height="22" rx="2" fill="#c7d7eb"/>
+          <rect x="21" y="27" width="6" height="22" rx="2" fill="#c7d7eb"/>
+          <rect x="8" y="51" width="48" height="5" rx="2" fill="#b7c3d4"/>
+        </svg>
+      </div>
+      <div class="burger">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect y="7" width="40" height="4" rx="2" fill="#7c7e83"/>
+          <rect y="18" width="40" height="4" rx="2" fill="#7c7e83"/>
+          <rect y="29" width="40" height="4" rx="2" fill="#7c7e83"/>
+        </svg>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-meta">
+        <span class="meta-label">Server vaqti</span>
+        <span class="meta-value" id="serverTime">17.02.2024 | 17:33</span>
+      </div>
+      <div class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Zm6-6v-5a6 6 0 0 0-5-5.92V4a1 1 0 0 0-2 0v1.08A6 6 0 0 0 6 11v5l-1.7 1.7A1 1 0 0 0 5 20h14a1 1 0 0 0 .7-1.7L18 16Z" stroke="currentColor" stroke-width="1.7"/>
+        </svg>
+        <div class="notif-dot"></div>
+      </div>
+      <div class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="7" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M21 9v6l-4-3z" fill="currentColor" />
+        </svg>
+      </div>
+      <div class="avatar">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="5" stroke="#7a92b6" stroke-width="2"/>
+          <path d="M2 22c2-5.5 10-5.5 20 0" stroke="#7a92b6" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="header">
+      <span class="test-title">Организация компьютера - <a href="#">Evgeniy Tulagenov Maksimovich</a></span>
+      <div class="header-right">
+        <span class="timer" id="timer">00:56:33</span>
+        <button class="finish-btn" onclick="finish()">Закончить экзамен</button>
+      </div>
+    </div>
+    <div class="qnav-wrap">
+      <div class="qnav" id="qnav"></div>
+    </div>
+    <div class="question-wrap" id="qwrap">
+      <div class="question-text" id="question"></div>
+      <span class="ball-badge" id="ball" style="display:none"></span>
+      <div class="answers" id="answers"></div>
+      <div class="author" id="author"></div>
+    </div>
+    <div class="footer" id="footer">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">&#8592;</button>
+      <span class="progress" id="progress"></span>
+      <button class="nav-btn" id="nextBtn" onclick="nextQ()">&#8594;</button>
+    </div>
+    <div class="results" id="results" style="display:none"></div>
+  </div>
+  <script>
+    function updateServerTime() {
+      let dt = new Date();
+      let d = String(dt.getDate()).padStart(2, '0');
+      let m = String(dt.getMonth()+1).padStart(2, '0');
+      let y = dt.getFullYear();
+      let hh = String(dt.getHours()).padStart(2, '0');
+      let mm = String(dt.getMinutes()).padStart(2, '0');
+      document.getElementById('serverTime').textContent = `${d}.${m}.${y} | ${hh}:${mm}`;
+    }
+    updateServerTime();
+    setInterval(updateServerTime, 30000);
+
+    let questions = [
+  {
+    "question": "Какой тип памяти является наиболее энергонезависимым и быстро теряет содержимое только при физическом разрушении?",
+    "answers": {
+      "a": "SRAM",
+      "b": "EEPROM",
+      "c": "DRAM",
+      "d": "Flash"
+    },
+    "y": "b",
+    "ball": 3,
+    "author": "Автор: Савельев А.С."
+  },
+  {
+    "question": "Что произойдет, если на шину адреса 32-разрядного процессора поступит число 0xFFFFFFFF?",
+    "answers": {
+      "a": "Будет обращение к последнему адресу памяти",
+      "b": "Произойдет сбой контроллера памяти",
+      "c": "Процессор перейдет в спящий режим",
+      "d": "Произойдет обращение к первому адресу памяти"
+    },
+    "y": "a",
+    "ball": 2,
+    "author": "Автор: Мельников П.Н."
+  },
+  {
+    "question": "Какой логический элемент необходим для реализации функции исключающего ИЛИ (XOR) с помощью базовых элементов?",
+    "answers": {
+      "a": "AND и OR",
+      "b": "OR и NOT",
+      "c": "AND, OR и NOT",
+      "d": "Только NAND"
+    },
+    "y": "c",
+    "ball": 3,
+    "author": "Автор: Ковалев С.А."
+  },
+  {
+    "question": "Для чего необходим кэш второго уровня (L2) в современной архитектуре процессора?",
+    "answers": {
+      "a": "Для хранения инструкций BIOS",
+      "b": "Для ускорения доступа к часто используемым данным",
+      "c": "Для управления питанием процессора",
+      "d": "Для коммуникации между ядрами"
+    },
+    "y": "b",
+    "ball": 2,
+    "author": "Автор: Воронин Д.А."
+  },
+  {
+    "question": "Какой вид архитектуры позволяет выполнять несколько инструкций одновременно?",
+    "answers": {
+      "a": "Однопоточная архитектура",
+      "b": "Суперскалярная архитектура",
+      "c": "Однопроцессорная архитектура",
+      "d": "Конвейерная архитектура"
+    },
+    "y": "b",
+    "ball": 3,
+    "author": "Автор: Дементьев Н.П."
+  },
+  {
+    "question": "При включении компьютера что выполняется первым?",
+    "answers": {
+      "a": "Инициализация операционной системы",
+      "b": "Выполнение POST через BIOS/UEFI",
+      "c": "Запуск жесткого диска",
+      "d": "Включение видеокарты"
+    },
+    "y": "b",
+    "ball": 2,
+    "author": "Автор: Сидоров В.Г."
+  },
+  {
+    "question": "Какая схема минимально необходима для создания триггера типа RS?",
+    "answers": {
+      "a": "Два элемента И-НЕ (NAND)",
+      "b": "Два элемента ИЛИ (OR)",
+      "c": "Два элемента НЕ (NOT)",
+      "d": "Три элемента И (AND)"
+    },
+    "y": "a",
+    "ball": 3,
+    "author": "Автор: Мухамедьянов И.И."
+  },
+  {
+    "question": "В чем принципиальная разница между DRAM и SRAM?",
+    "answers": {
+      "a": "DRAM быстрее SRAM",
+      "b": "SRAM дешевле DRAM",
+      "c": "SRAM хранит данные без регенерации, DRAM требует регенерации",
+      "d": "Обе требуют постоянной регенерации"
+    },
+    "y": "c",
+    "ball": 2,
+    "author": "Автор: Калинина Н.В."
+  },
+  {
+    "question": "Какой сигнал должен быть подан на затвор транзистора MOSFET для его полного открывания в схеме с n-каналом?",
+    "answers": {
+      "a": "Отрицательный относительно стока",
+      "b": "Положительный относительно истока",
+      "c": "Нулевой относительно истока",
+      "d": "Положительный относительно стока"
+    },
+    "y": "b",
+    "ball": 3,
+    "author": "Автор: Гафуров Д.Ш."
+  },
+  {
+    "question": "Что произойдет в случае короткого замыкания на входе источника питания?",
+    "answers": {
+      "a": "Выходное напряжение увеличится",
+      "b": "Ток резко возрастет, возможно срабатывание защиты или выход из строя",
+      "c": "Ничего не изменится",
+      "d": "Источник перейдет в спящий режим"
+    },
+    "y": "b",
+    "ball": 2,
+    "author": "Автор: Степанов О.М."
+  },
+  {
+    "question": "Определите результат нижеследующей рекурсивной программы:\nvoid f1(int n); void f2(int n);\nint main () {\nf2(9); return 0;\n}\nvoid f1(int n){\nif (n <= 0) return;\nf2(n-1);\ncout << n;\n}\nvoid f2(int n) {\nif (n <= 0) return;\ncout << n;\nf1(n-1);\n}",
+    "answers": {
+      "a": "864297531",
+      "b": "975312468",
+      "c": "975318642",
+      "d": "864213579"
+    },
+    "y": "b",
+    "ball": 4,
+    "author": "Автор: Kerimov Komil Fikratovich"
+  },
+  {
+    "question": "Дана матрица смежности графа:\n0, 0, 0, 1, 1\n0, 0, 1, 0, 1, 0\n0, 1, 0, 1, 0, 0\n0, 0, 1, 0, 1, 1\n1, 1, 0, 1, 0, 0\n1, 0, 0, 1, 0, 0\nОпределите порядок обхода в ширину(BFS) начиная с вершины 4",
+    "answers": {
+      "a": "4, 6, 5, 3, 1, 2",
+      "b": "4, 3, 5, 6, 1, 2", 
+      "c": "4, 3, 2, 5, 1, 6",
+      "d": "4, 3, 5, 6, 2, 1"
+    },
+    "y": "b",
+    "ball": 4,
+    "author": "Автор: Kerimov Komil Fikratovich"
+  },
+  {
+    "question": "Какая временная сложность у алгоритма быстрой сортировки (QuickSort) в худшем случае?",
+    "answers": {
+      "a": "O(n)",
+      "b": "O(n log n)",
+      "c": "O(n²)",
+      "d": "O(log n)"
+    },
+    "y": "c",
+    "ball": 3,
+    "author": "Автор: Алимов Б.К."
+  },
+  {
+    "question": "Сколько узлов может содержать полное бинарное дерево высотой h?",
+    "answers": {
+      "a": "2^h - 1",
+      "b": "2^(h+1) - 1",
+      "c": "2^h",
+      "d": "h + 1"
+    },
+    "y": "b",
+    "ball": 3,
+    "author": "Автор: Рахимов А.А."
+  },
+  {
+    "question": "Что выведет следующий код C++?\nint arr[] = {1, 2, 3, 4, 5};\nint *ptr = arr + 2;\ncout << *(ptr - 1) + *(ptr + 1);",
+    "answers": {
+      "a": "5",
+      "b": "6", 
+      "c": "7",
+      "d": "8"
+    },
+    "y": "b",
+    "ball": 4,
+    "author": "Автор: Nazarov Jamshid Baxtiyorovich"
+  },
+  {
+    "question": "В SQL какой оператор используется для объединения результатов двух запросов без дубликатов?",
+    "answers": {
+      "a": "JOIN",
+      "b": "MERGE",
+      "c": "UNION",
+      "d": "COMBINE"
+    },
+    "y": "c",
+    "ball": 2,
+    "author": "Автор: Каримова З.Н."
+  },
+  {
+    "question": "Какой протокол работает на транспортном уровне модели OSI и обеспечивает надежную доставку данных?",
+    "answers": {
+      "a": "HTTP",
+      "b": "UDP",
+      "c": "TCP",
+      "d": "IP"
+    },
+    "y": "c",
+    "ball": 2,
+    "author": "Автор: Юсупов К.М."
+  },
+  {
+    "question": "Что такое полиморфизм в объектно-ориентированном программировании?",
+    "answers": {
+      "a": "Сокрытие данных внутри класса",
+      "b": "Способность объектов разных типов отвечать на одни и те же сообщения",
+      "c": "Создание новых классов на основе существующих",
+      "d": "Объединение данных и методов в одном классе"
+    },
+    "y": "b",
+    "ball": 3,
+    "author": "Автор: Хакимов Р.Ш."
+  },
+  {
+    "question": "Какая структура данных лучше всего подходит для реализации функции отмены (Undo) в текстовом редакторе?",
+    "answers": {
+      "a": "Очередь (Queue)",
+      "b": "Стек (Stack)",
+      "c": "Связанный список",
+      "d": "Хеш-таблица"
+    },
+    "y": "b",
+    "ball": 3,
+    "author": "Автор: Садыков Д.Р."
+  },
+  {
+    "question": "В каком году была принята Конституция Республики Узбекистан?",
+    "answers": {
+      "a": "1991",
+      "b": "1992",
+      "c": "1993",
+      "d": "1994"
+    },
+    "y": "b",
+    "ball": 2,
+    "author": "Автор: Исламов У.Т."
+  },
+  {
+    "question": "Какой алгоритм шифрования является симметричным?",
+    "answers": {
+      "a": "RSA",
+      "b": "AES",
+      "c": "ECC",
+      "d": "DSA"
+    },
+    "y": "b",
+    "ball": 3,
+    "author": "Автор: Ахмедов С.В."
+  }
+];
+
+    let current = 0;
+    let userAnswers = Array(questions.length).fill(null);
+
+    function renderNav() {
+      qnav.innerHTML = questions.map((_, i) =>
+        `<div class="qnum${i==current ? ' current' : ''}${userAnswers[i] ? ' answered' : ''}" onclick="gotoQ(${i})">${i+1}</div>`
+      ).join('');
+    }
+    function renderQ() {
+      renderNav();
+      const q = questions[current];
+      question.textContent = q.question;
+      if (typeof q.ball !== "undefined") {
+        ball.style.display = '';
+        ball.textContent = `Балл: ${q.ball}`;
+      } else ball.style.display = 'none';
+
+      answers.innerHTML = Object.entries(q.answers).map(
+        ([key, text]) =>
+          `<div class="answer${userAnswers[current]===key ? ' selected' : ''}" onclick="choose('${key}')">
+             <span class="answer-letter">${key.toUpperCase()}</span> ${text}
+           </div>`
+      ).join('');
+      author.textContent = q.author || '';
+      progress.textContent = `${current+1}/${questions.length}`;
+      prevBtn.disabled = current===0;
+      nextBtn.disabled = current===questions.length-1;
+    }
+    function choose(key) {
+      userAnswers[current] = key;
+      renderQ();
+    }
+    function gotoQ(i) { current = i; renderQ(); }
+    function prevQ() { if(current>0){current--; renderQ();} }
+    function nextQ() { if(current<questions.length-1){current++; renderQ();} }
+
+    let sec = 56*60 + 33;
+    setInterval(()=>{
+      if(sec>0){
+        sec--;
+        let m = String(Math.floor(sec/60)).padStart(2,'0');
+        let s = String(sec%60).padStart(2,'0');
+        timer.textContent = `00:${m}:${s}`;
+      }
+    },1000);
+
+    function finish() {
+      qwrap.style.display = 'none';
+      footer.style.display = 'none';
+      document.querySelector('.qnav-wrap').style.display = 'none';
+      document.querySelector('.header .timer').style.display = 'none';
+      document.querySelector('.header .finish-btn').style.display = 'none';
+      let right = 0;
+      let total = 0;
+      let totalEarned = 0;
+      let html = `<h2>Результаты теста</h2>`;
+      questions.forEach((q, i) => {
+        const isOk = userAnswers[i] === q.y;
+        right += isOk ? 1 : 0;
+        let balls = q.ball || 0;
+        total += balls;
+        if (isOk) totalEarned += balls;
+        html += `
+        <div class="res-row">
+          <b>Вопрос ${i+1}:</b> ${q.question}<br>
+          <span class="${isOk?'res-ok':'res-bad'}">
+            ${isOk ? 'Верно!' : 'Неверно!'}
+          </span>
+          <br>
+          Твой ответ: ${userAnswers[i] ? q.answers[userAnswers[i]] : "<i>Не выбран</i>"}<br>
+          Правильный ответ: ${q.answers[q.y]}<br>
+          Балл за вопрос: ${balls}
+        </div>
+        `;
+      });
+      html += `<div class="score">Верных ответов: <b>${right} из ${questions.length}</b><br>Сумма баллов: <b>${totalEarned} из ${total}</b></div>`;
+      results.innerHTML = html;
+      results.style.display = '';
+    }
+
+    renderQ();
+  </script>
+</body>
+</html>

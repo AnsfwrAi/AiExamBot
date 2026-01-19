@@ -1,0 +1,168 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static admin_list %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrahead %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    .analytics-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+    }
+    .stat-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .stat-label {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-top: 20px;
+    }
+    .script-type-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .script-type-info {
+        display: flex;
+        flex-direction: column;
+    }
+    .script-type-name {
+        font-weight: bold;
+        color: #333;
+    }
+    .script-type-stats {
+        font-size: 0.85em;
+        color: #666;
+        margin-top: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <div class="stat-number">{{ total_scripts }}</div>
+        <div class="stat-label">Всего скриптов</div>
+    </div>
+
+    <div class="analytics-card">
+        <div class="stat-number">{{ active_scripts }}</div>
+        <div class="stat-label">Активных скриптов</div>
+    </div>
+
+    <div class="analytics-card">
+        <div class="stat-number">{{ active_now }}</div>
+        <div class="stat-label">Работают сейчас</div>
+    </div>
+
+    <div class="analytics-card">
+        <div class="stat-number">{{ inactive_scripts }}</div>
+        <div class="stat-label">Неактивных скриптов</div>
+    </div>
+</div>
+
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <h3>📊 Использование по дням (последние 30 дней)</h3>
+        <div class="chart-container">
+            <canvas id="usageChart"></canvas>
+        </div>
+    </div>
+
+    <div class="analytics-card">
+        <h3>📜 Статистика по типам скриптов</h3>
+        {% for script_type in script_types %}
+        <div class="script-type-item">
+            <div class="script-type-info">
+                <div class="script-type-name">{{ script_type.script_type }}</div>
+                <div class="script-type-stats">
+                    Среднее использование: {{ script_type.avg_usage|floatformat:1 }}
+                </div>
+            </div>
+            <div>
+                <strong>{{ script_type.count }}</strong> шт.
+                <br>
+                <small>{{ script_type.total_usage }} использований</small>
+            </div>
+        </div>
+        {% empty %}
+        <p>Нет данных</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <h3>👑 Топ владельцы скриптов</h3>
+        {% for owner in top_owners %}
+        <div class="script-type-item">
+            <div>
+                <a href="{% url 'admin:v1_tgusers_change' owner.id %}">
+                    {% if owner.is_admin %}👑{% else %}👤{% endif %}
+                    {{ owner.username|default:owner.user }}
+                </a>
+            </div>
+            <div>
+                <strong>{{ owner.scripts_count }}</strong> скриптов
+                <br>
+                <small>{{ owner.total_usage|default:0 }} использований</small>
+            </div>
+        </div>
+        {% empty %}
+        <p>Нет данных</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+const ctx = document.getElementById('usageChart').getContext('2d');
+const usageData = {{ daily_usage|safe }};
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: usageData.map(item => item.day),
+        datasets: [{
+            label: 'Использования',
+            data: usageData.map(item => item.count),
+            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+            borderColor: '#28a745',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

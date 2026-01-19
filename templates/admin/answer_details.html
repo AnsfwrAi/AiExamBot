@@ -1,0 +1,171 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static admin_list %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrahead %}
+<style>
+    .answer-header {
+        background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+    }
+    .answer-title {
+        font-size: 1.8em;
+        margin: 0 0 15px 0;
+    }
+    .answer-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        font-size: 0.9em;
+    }
+    .meta-item {
+        background: rgba(255,255,255,0.1);
+        padding: 10px;
+        border-radius: 4px;
+    }
+    .section {
+        background: white;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+    }
+    .section-title {
+        font-size: 1.2em;
+        margin-bottom: 15px;
+        color: #333;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 8px;
+    }
+    .image-container {
+        text-align: center;
+        margin: 20px 0;
+    }
+    .image-container img {
+        max-width: 100%;
+        max-height: 500px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .answer-json {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 20px;
+        overflow-x: auto;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    .back-button {
+        margin-bottom: 20px;
+    }
+    .json-key {
+        color: #0066cc;
+        font-weight: bold;
+    }
+    .json-string {
+        color: #28a745;
+    }
+    .json-number {
+        color: #dc3545;
+    }
+    .json-boolean {
+        color: #6610f2;
+    }
+    .json-null {
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="back-button">
+    <a href="{% url 'admin:v1_answer_changelist' %}" class="button">← Назад к списку ответов</a>
+</div>
+
+<div class="answer-header">
+    <h1 class="answer-title">📋 Ответ #{{ answer.id }}</h1>
+    <div class="answer-meta">
+        <div class="meta-item">
+            <strong>Скрипт:</strong><br>
+            <a href="{% url 'admin:v1_idscript_change' answer.script.id %}" style="color: white; text-decoration: underline;">
+                {{ answer.script.script }}
+            </a>
+        </div>
+        <div class="meta-item">
+            <strong>Владелец:</strong><br>
+            <a href="{% url 'admin:v1_tgusers_change' answer.script.owner.id %}" style="color: white; text-decoration: underline;">
+                {{ answer.script.owner.username|default:answer.script.owner.user }}
+            </a>
+        </div>
+        <div class="meta-item">
+            <strong>Дата создания:</strong><br>
+            {{ answer.created_at|date:"d.m.Y H:i:s" }}
+        </div>
+        <div class="meta-item">
+            <strong>Последнее обновление:</strong><br>
+            {{ answer.updated_at|date:"d.m.Y H:i:s" }}
+        </div>
+    </div>
+</div>
+
+{% if answer.image %}
+<div class="section">
+    <h2 class="section-title">🖼️ Загруженное изображение</h2>
+    <div class="image-container">
+        <img src="{{ answer.image.url }}" alt="Uploaded image" />
+        <div style="margin-top: 15px;">
+            <a href="{{ answer.image.url }}" class="button" download>💾 Скачать изображение</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if answer.answer %}
+<div class="section">
+    <h2 class="section-title">📄 JSON Ответ</h2>
+    <div class="answer-json">
+        <pre id="json-content">{{ answer.answer|safe }}</pre>
+    </div>
+</div>
+{% else %}
+<div class="section">
+    <p style="text-align: center; color: #666; font-size: 1.1em;">
+        Данные ответа отсутствуют
+    </p>
+</div>
+{% endif %}
+
+<script>
+// Подсветка JSON синтаксиса
+function highlightJSON() {
+    const content = document.getElementById('json-content');
+    if (content) {
+        let text = content.textContent;
+        try {
+            const parsed = JSON.parse(text);
+            const formatted = JSON.stringify(parsed, null, 2);
+
+            const highlighted = formatted
+                .replace(/(".*?")(\s*:)/g, '<span class="json-key">$1</span>$2')
+                .replace(/:\s*(".*?")/g, ': <span class="json-string">$1</span>')
+                .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+                .replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>')
+                .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+
+            content.innerHTML = highlighted;
+        } catch (e) {
+            console.log('Not valid JSON, keeping original format');
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', highlightJSON);
+</script>
+{% endblock %}

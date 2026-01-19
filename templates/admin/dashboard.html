@@ -1,0 +1,522 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .dashboard-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1em;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .stat-change {
+            font-size: 0.9em;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+
+        .stat-change.neutral {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .small-chart {
+            height: 200px;
+        }
+
+        .tables-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .table-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .table-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .top-item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-item-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .top-item-meta {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-top: 2px;
+        }
+
+        .top-item-value {
+            font-weight: 600;
+            color: #3498db;
+            font-size: 1.1em;
+        }
+
+        .admin-links {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-top: 25px;
+        }
+
+        .admin-links h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .admin-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 8px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .admin-link:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(39, 174, 96, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .refresh-indicator.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .tables-section {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>🚀 Панель управления</h1>
+            <p>Добро пожаловать в систему управления скриптами</p>
+        </div>
+
+        <!-- Статистические карточки -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-icon">👥</span>
+                <div class="stat-number" id="total-users">{{ total_users }}</div>
+                <div class="stat-label">Всего пользователей</div>
+                <div class="stat-change neutral">{{ admin_percent }}% админов</div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon">📜</span>
+                <div class="stat-number" id="total-scripts">{{ total_scripts }}</div>
+                <div class="stat-label">Всего скриптов</div>
+                <div class="stat-change positive">{{ active_scripts_percent }}% активных</div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon">📋</span>
+                <div class="stat-number" id="total-answers">{{ total_answers }}</div>
+                <div class="stat-label">Всего ответов</div>
+                <div class="stat-change positive" id="answers-today">{{ answers_today }} сегодня</div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-icon">🔗</span>
+                <div class="stat-number">{{ total_referrals }}</div>
+                <div class="stat-label">Рефералов</div>
+                <div class="stat-change positive">{{ referral_conversion }}% конверсия</div>
+            </div>
+        </div>
+
+        <!-- Графики -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-title">📈 Регистрации и активность</div>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">🕐 Активность по часам</div>
+                <div class="chart-container small-chart">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Топы -->
+        <div class="tables-section">
+            <div class="table-card">
+                <div class="table-title">🏆 Топ пользователи</div>
+                {% for user in top_users %}
+                <div class="top-item">
+                    <div class="top-item-info">
+                        <div class="top-item-name">
+                            {% if user.is_admin %}👑{% endif %}
+                            {{ user.username|default:user.user }}
+                        </div>
+                        <div class="top-item-meta">{{ user.scripts_count }} скриптов, {{ user.referrals_count }} рефералов</div>
+                    </div>
+                    <div class="top-item-value">{{ user.total_usage|default:0 }}</div>
+                </div>
+                {% empty %}
+                <p style="color: #7f8c8d;">Нет данных</p>
+                {% endfor %}
+            </div>
+
+            <div class="table-card">
+                <div class="table-title">📜 Топ скрипты</div>
+                {% for script in top_scripts %}
+                <div class="top-item">
+                    <div class="top-item-info">
+                        <div class="top-item-name">{{ script.script }}</div>
+                        <div class="top-item-meta">{{ script.owner.username|default:script.owner.user }}</div>
+                    </div>
+                    <div class="top-item-value">{{ script.answers_count }}</div>
+                </div>
+                {% empty %}
+                <p style="color: #7f8c8d;">Нет данных</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Быстрые ссылки на админку -->
+        <div class="admin-links">
+            <h3>⚡ Быстрые действия</h3>
+            <div class="links-grid">
+                <a href="/admin/v1/tgusers/" class="admin-link">
+                    <span>👥</span> Управление пользователями
+                </a>
+                <a href="/admin/v1/idscript/" class="admin-link">
+                    <span>📜</span> Управление скриптами
+                </a>
+                <a href="/admin/v1/answer/" class="admin-link">
+                    <span>📋</span> Просмотр ответов
+                </a>
+                <a href="/admin/v1/referral/" class="admin-link">
+                    <span>🔗</span> Реферальная система
+                </a>
+                <a href="/admin/v1/tgusers/analytics/" class="admin-link">
+                    <span>📊</span> Аналитика пользователей
+                </a>
+                <a href="/admin/v1/idscript/analytics/" class="admin-link">
+                    <span>📈</span> Аналитика скриптов
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Индикатор обновления -->
+    <div class="refresh-indicator" id="refresh-indicator">
+        📊 Данные обновлены
+    </div>
+
+    <script>
+        // Данные для графиков
+        const dailyRegistrations = {{ daily_registrations|safe }};
+        const dailyUsage = {{ daily_usage|safe }};
+        const hourlyActivity = {{ hourly_activity|safe }};
+
+        // График активности
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        new Chart(activityCtx, {
+            type: 'line',
+            data: {
+                labels: dailyRegistrations.map(item => item.day),
+                datasets: [{
+                    label: 'Регистрации',
+                    data: dailyRegistrations.map(item => item.count),
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Использования',
+                    data: dailyUsage.map(item => item.count),
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // График по часам
+        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+        new Chart(hourlyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: hourlyActivity.map(item => item.hour + ':00'),
+                datasets: [{
+                    data: hourlyActivity.map(item => item.count),
+                    backgroundColor: [
+                        '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
+                        '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#f1c40f',
+                        '#8e44ad', '#16a085', '#2c3e50', '#d35400'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 8
+                        }
+                    }
+                }
+            }
+        });
+
+        // Автообновление статистики каждые 30 секунд
+        function updateStats() {
+            fetch('/admin/dashboard-api/stats/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-users').textContent = data.total_users;
+                    document.getElementById('total-scripts').textContent = data.active_scripts;
+                    document.getElementById('total-answers').textContent = data.total_answers;
+                    document.getElementById('answers-today').textContent = data.answers_today + ' сегодня';
+
+                    // Показываем индикатор обновления
+                    const indicator = document.getElementById('refresh-indicator');
+                    indicator.classList.add('show');
+                    setTimeout(() => {
+                        indicator.classList.remove('show');
+                    }, 2000);
+                })
+                .catch(error => console.log('Ошибка обновления:', error));
+        }
+
+        // Запускаем автообновление
+        setInterval(updateStats, 30000);
+
+        // Анимация появления карточек
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.stat-card, .chart-card, .table-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static admin_list %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extrahead %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    .analytics-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+    }
+    .stat-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #dc3545;
+    }
+    .conversion-rate {
+        color: #28a745;
+    }
+    .stat-label {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-top: 20px;
+    }
+    .conversion-chart {
+        height: 200px;
+    }
+    .script-type-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <div class="stat-number">{{ total_referrals }}</div>
+        <div class="stat-label">Всего рефералов</div>
+    </div>
+
+    <div class="analytics-card">
+        <div class="stat-number">{{ used_referrals }}</div>
+        <div class="stat-label">Использованные</div>
+    </div>
+
+    <div class="analytics-card">
+        <div class="stat-number">{{ unused_referrals }}</div>
+        <div class="stat-label">Не использованные</div>
+    </div>
+
+    <div class="analytics-card">
+        <div class="stat-number conversion-rate">{{ conversion_rate }}%</div>
+        <div class="stat-label">Конверсия</div>
+    </div>
+
+    <div class="analytics-card">
+        <div class="stat-number">{{ referrals_today }}</div>
+        <div class="stat-label">Рефералов сегодня</div>
+    </div>
+</div>
+
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <h3>📈 Рефералы по дням (последние 30 дней)</h3>
+        <div class="chart-container">
+            <canvas id="referralsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="analytics-card">
+        <h3>🎯 Конверсия рефералов</h3>
+        <div class="chart-container conversion-chart">
+            <canvas id="conversionChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="analytics-grid">
+    <div class="analytics-card">
+        <h3>🏆 Топ реферреры</h3>
+        {% for referrer in top_referrers %}
+        <div class="script-type-item">
+            <div>
+                <a href="{% url 'admin:v1_tgusers_change' referrer.id %}">
+                    {% if referrer.is_admin %}👑{% else %}👤{% endif %}
+                    {{ referrer.username|default:referrer.user }}
+                </a>
+            </div>
+            <div>
+                <strong>{{ referrer.referrals_count }}</strong> рефералов
+                <br>
+                <small style="color: #28a745;">{{ referrer.used_referrals_count }} использованных</small>
+            </div>
+        </div>
+        {% empty %}
+        <p>Нет данных</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// График рефералов по дням
+const ctx1 = document.getElementById('referralsChart').getContext('2d');
+const referralsData = {{ daily_referrals|safe }};
+
+new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: referralsData.map(item => item.day),
+        datasets: [{
+            label: 'Рефералы',
+            data: referralsData.map(item => item.count),
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Диаграмма конверсии
+const ctx2 = document.getElementById('conversionChart').getContext('2d');
+
+new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: ['Использованные', 'Не использованные'],
+        datasets: [{
+            data: [{{ used_referrals }}, {{ unused_referrals }}],
+            backgroundColor: [
+                '#28a745',
+                '#ffc107'
+            ],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
