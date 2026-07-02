@@ -30,6 +30,7 @@ SECRET_KEY = 'django-insecure-2yizdtmb0!z2po6anq4&&8%p-chy66=k3xz-%s@4=121n5p=bn
 
 DOMAIN = os.getenv('API_DOMAIN')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
