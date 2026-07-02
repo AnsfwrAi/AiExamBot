@@ -37,6 +37,8 @@ sys.exit(1)
 fi
 
 echo "--> Applying database migrations..."
+python manage.py makemigrations v1 --noinput || true
+python manage.py makemigrations --noinput || true
 python manage.py migrate --noinput
 
 if [ -n "$BOT_TOKEN" ] && [ -n "$WEBHOOK_URL" ]; then
