@@ -182,9 +182,9 @@ class AiAnswerCheckView(mixins.SuccessErrorResponseMixin, views.APIView):
         # data = ai_model_v3(base64_img)
         # data = solve_image_with_assistant(base64_img)
         #data = ai_model_v4(base64_img)
-        # data = ai_model_v5(base64_img)
-        from services.image2answer.model6_claude import solve_task as ai_model_v6_claude
-        data = ai_model_v6_claude(base64_img)
+        data = ai_model_v5(base64_img)
+        # from services.image2answer.model6_claude import solve_task as ai_model_v6_claude
+        # data = ai_model_v6_claude(base64_img)
         if not data or not data.get("answer"):
             return self.error("parse_error", "Answer not found", status_code=404)
 

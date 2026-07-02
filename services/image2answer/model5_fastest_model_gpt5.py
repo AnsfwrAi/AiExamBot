@@ -5,7 +5,7 @@ from core import settings
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-MODEL = "gpt-5-mini"
+MODEL = "gpt-5.4-mini"
 
 INSTRUCTIONS = (
     "Перед тобой экзаменационный или тестовый вопрос "
