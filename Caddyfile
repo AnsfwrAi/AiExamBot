@@ -1,6 +1,3 @@
-# The DOMAIN environment variable will define the site address.
-# Caddy will automatically request and renew SSL certificates for it.
-# (If set to 'localhost' or an IP, Caddy will serve over HTTP automatically).
-{$DOMAIN} {
+bot.bestquiz.uz, api.bestquiz.uz, ai.bestquiz.uz {
     reverse_proxy web:8000
 }
