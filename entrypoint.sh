@@ -40,6 +40,8 @@ echo "--> Applying database migrations..."
 python manage.py makemigrations v1 --noinput || true
 python manage.py makemigrations --noinput || true
 python manage.py migrate --noinput
+echo "--> Collecting static files..."
+python manage.py collectstatic --noinput
 
 if [ -n "$BOT_TOKEN" ] && [ -n "$WEBHOOK_URL" ]; then
   echo "--> Setting up Telegram Webhook..."
