@@ -39,7 +39,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in ['true', '1', 't', 'y', 'yes']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 # Application definition
-APPEND_SLASH = False
+APPEND_SLASH = True
 
 INSTALLED_APPS = [
     'jazzmin',
