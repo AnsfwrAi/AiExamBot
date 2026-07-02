@@ -69,23 +69,27 @@ async def start_handler(message: types.Message, command: CommandStart):
         _uz_w = ("<b>🛡️ Boshlashdan oldin, iltimos, foydalanish siyosati bilan tanishing va uni qabul qiling.</b>"
                  "Roziligingizni tasdiqlash uchun quyidagi tugmani bosing.")
         try:
-            file = settings.POLICE_FILE_TG_ID_DOCUMENT_RU if user_language == "ru" else settings.POLICE_FILE_TG_ID_DOCUMENT_UZ
-            await bot.send_document(
-                chat_id=user_id,
-                document=file,
-                caption=_ru_w if user_language == "ru" else _uz_w,
-                parse_mode="HTML",
-                reply_markup=kb
-            )
-            return
+            try:
+                file = settings.POLICE_FILE_TG_ID_DOCUMENT_RU if user_language == "ru" else settings.POLICE_FILE_TG_ID_DOCUMENT_UZ
+                await bot.send_document(
+                    chat_id=user_id,
+                    document=file,
+                    caption=_ru_w if user_language == "ru" else _uz_w,
+                    parse_mode="HTML",
+                    reply_markup=kb
+                )
+                return
+            except Exception as e:
+                await bot.send_message(
+                    chat_id=user_id,
+                    text=_ru_w if user_language == "ru" else _uz_w,
+                    parse_mode="HTML",
+                    reply_markup=kb
+                )
+                return
         except Exception as e:
-            await bot.send_message(
-                chat_id=user_id,
-                text=_ru_w if user_language == "ru" else _uz_w,
-                parse_mode="HTML",
-                reply_markup=kb
-            )
-            return
+            print(f"Error sending start policy prompt: {e}")
+            await sync_to_async(operations.set_police)(user_id, True)
 
     if await sync_to_async(operations.is_admin)(user_id):
         await message.answer("✅ Вы вошли как администратор", reply_markup=admin_reply.main_menu())
