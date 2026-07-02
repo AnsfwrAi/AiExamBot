@@ -31,21 +31,21 @@ class HasAcceptedPolicy(BaseFilter):
                     document=settings.POLICE_FILE_TG_ID_DOCUMENT_RU if user_lang == "ru" else settings.POLICE_FILE_TG_ID_DOCUMENT_UZ,
                     caption=_ru_w if user_lang == "ru" else _uz_w,
                     parse_mode="HTML",
-                    reply_markup=inline.police_kb()
+                    reply_markup=inline.police_kb(user_language=user_lang)
                 )
             except TelegramBadRequest:
                 await bot.send_message(
                     chat_id=message.from_user.id,
                     text=_ru_w if user_lang == "ru" else _uz_w,
                     parse_mode="HTML",
-                    reply_markup=inline.police_kb()
+                    reply_markup=inline.police_kb(user_language=user_lang)
                 )
             except Exception:
                 await bot.send_message(
                     chat_id=message.from_user.id,
                     text=_ru_w if user_lang == "ru" else _uz_w,
                     parse_mode="HTML",
-                    reply_markup=inline.police_kb()
+                    reply_markup=inline.police_kb(user_language=user_lang)
                 )
 
             return False
