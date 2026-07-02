@@ -79,8 +79,10 @@ CSRF_TRUSTED_ORIGINS = [
     'http://165.232.93.246:8000',
     "https://jjks.site",
     "https://lms.tuit.uz",
-    "https://1bda52b9ac51.ngrok-free.app"
-    
+    "https://1bda52b9ac51.ngrok-free.app",
+    "https://bot.bestquiz.uz",
+    "https://api.bestquiz.uz",
+    "https://ai.bestquiz.uz"
 ]
 
 ROOT_URLCONF = 'core.urls'
