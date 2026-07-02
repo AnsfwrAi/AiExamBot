@@ -164,7 +164,7 @@ TIME_ZONE = 'Asia/Tashkent'
 
 DEFAULT_TIMEZONE = 'Asia/Tashkent'
 
-REDIS_URL='redis://localhost:6379/0'
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
 
 REST_FRAMEWORK = {

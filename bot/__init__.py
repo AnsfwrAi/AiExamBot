@@ -2,11 +2,14 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from django.conf import settings
 from redis.asyncio import Redis
+import os
 
 bot = Bot(token=settings.BOT_TOKEN)
 storage = RedisStorage.from_url(settings.REDIS_URL)
 dp = Dispatcher(storage=storage)
-redis = Redis(host="localhost", port=6379, decode_responses=True)
+redis_host = os.getenv('REDIS_HOST', 'localhost')
+redis_port = int(os.getenv('REDIS_PORT', 6379))
+redis = Redis(host=redis_host, port=redis_port, decode_responses=True)
 
 
 class CommandMap:
