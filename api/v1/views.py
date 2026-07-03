@@ -199,12 +199,12 @@ class AiAnswerCheckView(mixins.SuccessErrorResponseMixin, views.APIView):
 
 
 class GetScript(View):
-    def script_filter(self, script_type, key):
+    def script_filter(self, script_type, key, fingerprint):
         template = {
             "base_prod_uuid": BASE_SCRIPT_PROD_UUID,
             "base_uuid": BASE_SCRIPT
         }.get(script_type, BASE_SCRIPT)
-        return template.format(key=key, domain=settings.DOMAIN)
+        return template.format(key=key, domain=settings.DOMAIN, fingerprint=fingerprint)
 
     def get(self, request, script):
         if not script:
@@ -218,7 +218,7 @@ class GetScript(View):
             if script_info.is_max_usage_reached:
                 return HttpResponseServerError()
 
-            content = self.script_filter(script_info.script_type, script_info.key)
+            content = self.script_filter(script_info.script_type, script_info.key, script_info.fingerprint)
             return HttpResponse(content, content_type='application/javascript')
 
         except Exception as e:

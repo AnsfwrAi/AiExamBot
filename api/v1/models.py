@@ -214,6 +214,8 @@ class IdScript(BaseModel):
             self.script = generate_unique_script_name()
         if not self.key:
             self.key = generate_key()
+        if not self.fingerprint:
+            self.fingerprint = generate_key(32)
         super().save(*args, **kwargs)
 
 

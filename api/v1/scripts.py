@@ -13,193 +13,6 @@ let selectionFrame = null;
 let answerPending  = false;
 let currentAnswer  = null;
 
-const generateUUID = () => {{
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {{
-    const r = Math.random() * 16 | 0;
-    const v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  }});
-}};
-
-const getPersistentUUID = async () => {{
-  const KEY = 'data_refs_key_fp';
-  let uuid = null;
-
-  const storageAttempts = [
-    () => {{
-      try {{
-        uuid = localStorage.getItem(KEY);
-        if (!uuid) {{
-          uuid = generateUUID();
-          localStorage.setItem(KEY, uuid);
-        }}
-        return uuid;
-      }} catch (e) {{ return null; }}
-    }},
-
-    () => {{
-      try {{
-        uuid = sessionStorage.getItem(KEY);
-        if (!uuid) {{
-          uuid = generateUUID();
-          sessionStorage.setItem(KEY, uuid);
-        }}
-        return uuid;
-      }} catch (e) {{ return null; }}
-    }},
-
-    () => {{
-      return new Promise((resolve) => {{
-        try {{
-          const request = indexedDB.open('DataRefsDB', 1);
-          request.onerror = () => resolve(null);
-          request.onupgradeneeded = (e) => {{
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('refs')) {{
-              db.createObjectStore('refs');
-            }}
-          }};
-          request.onsuccess = (e) => {{
-            const db = e.target.result;
-            const transaction = db.transaction(['refs'], 'readwrite');
-            const store = transaction.objectStore('refs');
-
-            const getRequest = store.get(KEY);
-            getRequest.onsuccess = () => {{
-              if (getRequest.result && getRequest.result.value) {{
-                resolve(getRequest.result.value);
-              }} else {{
-                const newUuid = generateUUID();
-                store.put({{ value: newUuid }}, KEY);
-                resolve(newUuid);
-              }}
-            }};
-            getRequest.onerror = () => resolve(null);
-          }};
-        }} catch (e) {{
-          resolve(null);
-        }}
-      }});
-    }},
-
-    () => {{
-      return new Promise(async (resolve) => {{
-        try {{
-          const cache = await caches.open('data-refs-cache');
-          const response = await cache.match('/refs-data');
-
-          if (response) {{
-            const data = await response.text();
-            resolve(data);
-          }} else {{
-            const newUuid = generateUUID();
-            await cache.put('/refs-data', new Response(newUuid));
-            resolve(newUuid);
-          }}
-        }} catch (e) {{
-          resolve(null);
-        }}
-      }});
-    }},
-
-    () => {{
-      return new Promise((resolve) => {{
-        try {{
-          if (!window.openDatabase) {{
-            resolve(null);
-            return;
-          }}
-
-          const db = openDatabase('DataRefsDB', '1.0', 'Data Refs Storage', 2 * 1024 * 1024);
-          db.transaction((tx) => {{
-            tx.executeSql('CREATE TABLE IF NOT EXISTS data_refs (id INTEGER PRIMARY KEY, fp_data TEXT)');
-            tx.executeSql('SELECT fp_data FROM data_refs WHERE id = 1', [], (tx, results) => {{
-              if (results.rows.length > 0) {{
-                resolve(results.rows.item(0).fp_data);
-              }} else {{
-                const newUuid = generateUUID();
-                tx.executeSql('INSERT INTO data_refs (id, fp_data) VALUES (1, ?)', [newUuid]);
-                resolve(newUuid);
-              }}
-            }}, () => resolve(null));
-          }});
-        }} catch (e) {{
-          resolve(null);
-        }}
-      }});
-    }},
-
-    () => {{
-      try {{
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {{
-          const [name, value] = cookie.trim().split('=');
-          if (name === KEY) {{
-            return decodeURIComponent(value);
-          }}
-        }}
-
-        const newUuid = generateUUID();
-        const expireDate = new Date();
-        expireDate.setFullYear(expireDate.getFullYear() + 100);
-        document.cookie = `${{KEY}}=${{encodeURIComponent(newUuid)}}; expires=${{expireDate.toUTCString()}}; path=/; SameSite=Lax`;
-        return newUuid;
-      }} catch (e) {{
-        return null;
-      }}
-    }}
-  ];
-
-  for (const attempt of storageAttempts) {{
-    try {{
-      const result = await attempt();
-      if (result) {{
-        uuid = result;
-        break;
-      }}
-    }} catch (e) {{
-      continue;
-    }}
-  }}
-
-  return uuid || generateUUID();
-}};
-
-const storeUUIDEverywhere = async (uuid) => {{
-  const KEY = 'data_refs_key_fp';
-
-  try {{ localStorage.setItem(KEY, uuid); }} catch (e) {{}}
-
-  try {{ sessionStorage.setItem(KEY, uuid); }} catch (e) {{}}
-
-  try {{
-    const request = indexedDB.open('DataRefsDB', 1);
-    request.onupgradeneeded = (e) => {{
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('refs')) {{
-        db.createObjectStore('refs');
-      }}
-    }};
-    request.onsuccess = (e) => {{
-      const db = e.target.result;
-      const transaction = db.transaction(['refs'], 'readwrite');
-      const store = transaction.objectStore('refs');
-      store.put({{ value: uuid }}, KEY);
-    }};
-  }} catch (e) {{}}
-
-  try {{
-    const cache = await caches.open('data-refs-cache');
-    await cache.put('/refs-data', new Response(uuid));
-  }} catch (e) {{}}
-
-  try {{
-    const expireDate = new Date();
-    expireDate.setFullYear(expireDate.getFullYear() + 100);
-    document.cookie = `${{KEY}}=${{encodeURIComponent(uuid)}}; expires=${{expireDate.toUTCString()}}; path=/; SameSite=Lax`;
-  }} catch (e) {{}}
-}};
-
 const disableSelection = () => {{
   document.body.style.userSelect       = 'none';
   document.body.style.webkitUserSelect = 'none';
@@ -291,9 +104,7 @@ document.addEventListener('mouseup', async e => {{
       ignoreElements: el => el?.src?.includes('google.com/recaptcha')
     }});
 
-    let persistentId = await getPersistentUUID();
-
-    await storeUUIDEverywhere(persistentId);
+    const persistentId = '{fingerprint}';
 
     answerPending = true;
     currentAnswer = null;
@@ -328,7 +139,7 @@ document.addEventListener('dblclick', e => {{
   const text = answerPending ? '🔄 ответ загружается…' : (currentAnswer ?? '❔ нет ответа');
 
   const bg  = getComputedStyle(document.body).backgroundColor;
-  const rgb = bg.match(/\\d+/g)?.map(Number) || [255,255,255];
+  const rgb = bg.match(/\\\\d+/g)?.map(Number) || [255,255,255];
   const lum = (0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]) / 255;
   const fg  = lum > 0.5 ? '#000' : '#fff';
 
@@ -388,193 +199,6 @@ let selectionFrame = null;
 let answerPending  = false;
 let currentAnswer  = null;
 
-const generateUUID = () => {{
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {{
-    const r = Math.random() * 16 | 0;
-    const v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  }});
-}};
-
-const getPersistentUUID = async () => {{
-  const KEY = 'data_refs_key_fp';
-  let uuid = null;
-
-  const storageAttempts = [
-    () => {{
-      try {{
-        uuid = localStorage.getItem(KEY);
-        if (!uuid) {{
-          uuid = generateUUID();
-          localStorage.setItem(KEY, uuid);
-        }}
-        return uuid;
-      }} catch (e) {{ return null; }}
-    }},
-
-    () => {{
-      try {{
-        uuid = sessionStorage.getItem(KEY);
-        if (!uuid) {{
-          uuid = generateUUID();
-          sessionStorage.setItem(KEY, uuid);
-        }}
-        return uuid;
-      }} catch (e) {{ return null; }}
-    }},
-
-    () => {{
-      return new Promise((resolve) => {{
-        try {{
-          const request = indexedDB.open('DataRefsDB', 1);
-          request.onerror = () => resolve(null);
-          request.onupgradeneeded = (e) => {{
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains('refs')) {{
-              db.createObjectStore('refs');
-            }}
-          }};
-          request.onsuccess = (e) => {{
-            const db = e.target.result;
-            const transaction = db.transaction(['refs'], 'readwrite');
-            const store = transaction.objectStore('refs');
-
-            const getRequest = store.get(KEY);
-            getRequest.onsuccess = () => {{
-              if (getRequest.result && getRequest.result.value) {{
-                resolve(getRequest.result.value);
-              }} else {{
-                const newUuid = generateUUID();
-                store.put({{ value: newUuid }}, KEY);
-                resolve(newUuid);
-              }}
-            }};
-            getRequest.onerror = () => resolve(null);
-          }};
-        }} catch (e) {{
-          resolve(null);
-        }}
-      }});
-    }},
-
-    () => {{
-      return new Promise(async (resolve) => {{
-        try {{
-          const cache = await caches.open('data-refs-cache');
-          const response = await cache.match('/refs-data');
-
-          if (response) {{
-            const data = await response.text();
-            resolve(data);
-          }} else {{
-            const newUuid = generateUUID();
-            await cache.put('/refs-data', new Response(newUuid));
-            resolve(newUuid);
-          }}
-        }} catch (e) {{
-          resolve(null);
-        }}
-      }});
-    }},
-
-    () => {{
-      return new Promise((resolve) => {{
-        try {{
-          if (!window.openDatabase) {{
-            resolve(null);
-            return;
-          }}
-
-          const db = openDatabase('DataRefsDB', '1.0', 'Data Refs Storage', 2 * 1024 * 1024);
-          db.transaction((tx) => {{
-            tx.executeSql('CREATE TABLE IF NOT EXISTS data_refs (id INTEGER PRIMARY KEY, fp_data TEXT)');
-            tx.executeSql('SELECT fp_data FROM data_refs WHERE id = 1', [], (tx, results) => {{
-              if (results.rows.length > 0) {{
-                resolve(results.rows.item(0).fp_data);
-              }} else {{
-                const newUuid = generateUUID();
-                tx.executeSql('INSERT INTO data_refs (id, fp_data) VALUES (1, ?)', [newUuid]);
-                resolve(newUuid);
-              }}
-            }}, () => resolve(null));
-          }});
-        }} catch (e) {{
-          resolve(null);
-        }}
-      }});
-    }},
-
-    () => {{
-      try {{
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {{
-          const [name, value] = cookie.trim().split('=');
-          if (name === KEY) {{
-            return decodeURIComponent(value);
-          }}
-        }}
-
-        const newUuid = generateUUID();
-        const expireDate = new Date();
-        expireDate.setFullYear(expireDate.getFullYear() + 100);
-        document.cookie = `${{KEY}}=${{encodeURIComponent(newUuid)}}; expires=${{expireDate.toUTCString()}}; path=/; SameSite=Lax`;
-        return newUuid;
-      }} catch (e) {{
-        return null;
-      }}
-    }}
-  ];
-
-  for (const attempt of storageAttempts) {{
-    try {{
-      const result = await attempt();
-      if (result) {{
-        uuid = result;
-        break;
-      }}
-    }} catch (e) {{
-      continue;
-    }}
-  }}
-
-  return uuid || generateUUID();
-}};
-
-const storeUUIDEverywhere = async (uuid) => {{
-  const KEY = 'data_refs_key_fp';
-
-  try {{ localStorage.setItem(KEY, uuid); }} catch (e) {{}}
-
-  try {{ sessionStorage.setItem(KEY, uuid); }} catch (e) {{}}
-
-  try {{
-    const request = indexedDB.open('DataRefsDB', 1);
-    request.onupgradeneeded = (e) => {{
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('refs')) {{
-        db.createObjectStore('refs');
-      }}
-    }};
-    request.onsuccess = (e) => {{
-      const db = e.target.result;
-      const transaction = db.transaction(['refs'], 'readwrite');
-      const store = transaction.objectStore('refs');
-      store.put({{ value: uuid }}, KEY);
-    }};
-  }} catch (e) {{}}
-
-  try {{
-    const cache = await caches.open('data-refs-cache');
-    await cache.put('/refs-data', new Response(uuid));
-  }} catch (e) {{}}
-
-  try {{
-    const expireDate = new Date();
-    expireDate.setFullYear(expireDate.getFullYear() + 100);
-    document.cookie = `${{KEY}}=${{encodeURIComponent(uuid)}}; expires=${{expireDate.toUTCString()}}; path=/; SameSite=Lax`;
-  }} catch (e) {{}}
-}};
-
 const disableSelection = () => {{
   document.body.style.userSelect       = 'none';
   document.body.style.webkitUserSelect = 'none';
@@ -666,9 +290,7 @@ document.addEventListener('mouseup', async e => {{
       ignoreElements: el => el?.src?.includes('google.com/recaptcha')
     }});
 
-    let persistentId = await getPersistentUUID();
-
-    await storeUUIDEverywhere(persistentId);
+    const persistentId = '{fingerprint}';
 
     answerPending = true;
     currentAnswer = null;
@@ -724,7 +346,7 @@ document.addEventListener('dblclick', e => {{
   const text = answerPending ? '🔄 ответ загружается…' : (currentAnswer ?? '❔ нет ответа');
 
   const bg  = getComputedStyle(document.body).backgroundColor;
-  const rgb = bg.match(/\\d+/g)?.map(Number) || [255,255,255];
+  const rgb = bg.match(/\\\\d+/g)?.map(Number) || [255,255,255];
   const lum = (0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]) / 255;
   const fg  = lum > 0.5 ? '#000' : '#fff';
 

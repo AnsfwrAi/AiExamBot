@@ -374,7 +374,7 @@ class IdScriptAdmin(admin.ModelAdmin):
     ]
     search_fields = ['script', 'key', 'owner__username', 'owner__user', 'fingerprint']
     readonly_fields = [
-        'script', 'key', 'created_at', 'updated_at', 'first_activate',
+        'key', 'created_at', 'updated_at', 'first_activate',
         'first_seen', 'usage_analytics', 'time_analytics'
     ]
 
