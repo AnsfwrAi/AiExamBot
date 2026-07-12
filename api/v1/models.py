@@ -98,6 +98,7 @@ class IdScript(BaseModel):
     class ScriptChoices(models.TextChoices):
         BASE_PROD_UUID = 'base_prod_uuid', 'Base production script with UUID'
         BASE_PROD = 'base_prod', 'Base production script'
+        V2_VIEWPORT_CROP = 'v2_viewport_crop', 'V2 - надежный кроп (снимок всего экрана + обрезка)'
 
     owner = models.ForeignKey(
         TgUsers,
