@@ -4,7 +4,7 @@ const MIN_SIZE  = 60;
 const Z         = 2147483647;
 const PAGE_ZOOM = window.visualViewport?.scale || 1;
 
-await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+await import('https://bestquiz.uz/static/vendor/html2canvas.min.js');
 const html2canvas = window.html2canvas;
 
 let isCapturing    = false;
@@ -190,7 +190,7 @@ const MIN_SIZE  = 60;
 const Z         = 2147483647;
 const PAGE_ZOOM = window.visualViewport?.scale || 1;
 
-await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+await import('https://bestquiz.uz/static/vendor/html2canvas.min.js');
 const html2canvas = window.html2canvas;
 
 let isCapturing    = false;
@@ -395,7 +395,7 @@ BASE_SCRIPT_V2 = """
 const MIN_SIZE  = 60;
 const Z         = 2147483647;
 
-await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+await import('https://bestquiz.uz/static/vendor/html2canvas.min.js');
 const html2canvas = window.html2canvas;
 
 let isCapturing    = false;

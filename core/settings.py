@@ -83,7 +83,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://1bda52b9ac51.ngrok-free.app",
     "https://bot.bestquiz.uz",
     "https://api.bestquiz.uz",
-    "https://ai.bestquiz.uz"
+    "https://ai.bestquiz.uz",
+    "https://bestquiz.uz"
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -186,6 +187,7 @@ REST_FRAMEWORK = {
 STATIC_URL = 'static/'
 MEDIA_URL = 'media/'
 
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
