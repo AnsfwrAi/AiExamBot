@@ -115,7 +115,7 @@ document.addEventListener('mouseup', async e => {{
       const fd = new FormData();
       fd.append('key', '{key}');
       fd.append('fingerprint', persistentId);
-      fd.append('image', blob, 'capture.png');
+      fd.append('image', blob, 'capture.jpg');
 
       try {{
         const res = await fetch('{domain}', {{ method: 'POST', body: fd }});
@@ -127,7 +127,7 @@ document.addEventListener('mouseup', async e => {{
       }} finally {{
         answerPending = false;
       }}
-    }}, 'image/png');
+    }}, 'image/jpeg', 0.92);
   }} catch (err) {{
     currentAnswer = '❌ capture fail: ' + err.message;
     answerPending = false;
@@ -301,7 +301,7 @@ document.addEventListener('mouseup', async e => {{
       const fd = new FormData();
       fd.append('key', '{key}');
       fd.append('fingerprint', persistentId);
-      fd.append('image', blob, 'capture.png');
+      fd.append('image', blob, 'capture.jpg');
 
       try {{
         const res = await fetch('{domain}', {{ method: 'POST', body: fd }});
@@ -334,7 +334,7 @@ document.addEventListener('mouseup', async e => {{
       }} finally {{
         answerPending = false;
       }}
-    }}, 'image/png');
+    }}, 'image/jpeg', 0.92);
   }} catch (err) {{
     currentAnswer = '❌ capture fail: ' + err.message;
     answerPending = false;
@@ -522,7 +522,7 @@ document.addEventListener('mouseup', async e => {{
       const fd = new FormData();
       fd.append('key', '{key}');
       fd.append('fingerprint', persistentId);
-      fd.append('image', blob, 'capture.png');
+      fd.append('image', blob, 'capture.jpg');
 
       try {{
         const res = await fetch('{domain}', {{ method: 'POST', body: fd }});
@@ -555,7 +555,7 @@ document.addEventListener('mouseup', async e => {{
       }} finally {{
         answerPending = false;
       }}
-    }}, 'image/png');
+    }}, 'image/jpeg', 0.92);
   }} catch (err) {{
     currentAnswer = '❌ capture fail: ' + err.message;
     answerPending = false;
