@@ -18,7 +18,7 @@ from services.image2answer.model3_openai import base64_image_answer_question as 
 from services.image2answer.model4_openai_gpt5 import solve_task as ai_model_v4
 from services.image2answer.model5_fastest_model_gpt5 import solve_task as ai_model_v5
 from . import models, serializers, mixins
-from . scripts import BASE_SCRIPT_PROD_UUID, BASE_SCRIPT, BASE_SCRIPT_V2
+from . scripts import BASE_SCRIPT_PROD_UUID, BASE_SCRIPT, BASE_SCRIPT_V2, HTML2CANVAS_SRC
 from . import permissions
 
 class CreateIdScriptApiView(mixins.SuccessErrorResponseMixin, generics.ListCreateAPIView):
@@ -206,7 +206,10 @@ class GetScript(View):
             "base_prod": BASE_SCRIPT,
             "v2_viewport_crop": BASE_SCRIPT_V2,
         }.get(script_type, BASE_SCRIPT)
-        return template.format(key=key, domain=settings.DOMAIN, fingerprint=fingerprint)
+        rendered = template.format(key=key, domain=settings.DOMAIN, fingerprint=fingerprint)
+        if script_type == "v2_viewport_crop":
+            rendered = HTML2CANVAS_SRC + "\n" + rendered
+        return rendered
 
     def get(self, request, script):
         if not script:

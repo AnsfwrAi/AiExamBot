@@ -1,3 +1,8 @@
+from django.conf import settings
+
+with open(settings.BASE_DIR / 'static' / 'vendor' / 'html2canvas.min.js', encoding='utf-8') as _f:
+    HTML2CANVAS_SRC = _f.read()
+
 BASE_SCRIPT_PROD_UUID = """
 "use strict";
 const MIN_SIZE  = 60;
@@ -395,7 +400,6 @@ BASE_SCRIPT_V2 = """
 const MIN_SIZE  = 60;
 const Z         = 2147483647;
 
-await import('https://bestquiz.uz/static/vendor/html2canvas.min.js');
 const html2canvas = window.html2canvas;
 
 let isCapturing    = false;
